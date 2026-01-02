@@ -1,37 +1,66 @@
-import { AbsoluteFill, useCurrentFrame, interpolate, spring, useVideoConfig } from 'remotion';
+import { AbsoluteFill, useCurrentFrame, interpolate } from 'remotion';
+import { useEffect, useRef } from 'react';
+import { gsap } from 'gsap';
+import { RobotIcon, BriefcaseIcon, TargetIcon, ChartIcon } from '../components/Icons';
 
 export const Scene3_Features = ({ duration }) => {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const containerRef = useRef(null);
 
   const opacity = interpolate(
     frame,
-    [0, 30, duration - 30, duration],
+    [0, 15, duration - 15, duration],
     [0, 1, 1, 0],
     { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
   );
 
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const tl = gsap.timeline();
+    
+    tl.from('.features-title', {
+      y: 60,
+      opacity: 0,
+      duration: 0.8,
+      ease: 'power4.out',
+    })
+    .from('.features-subtitle', {
+      y: 30,
+      opacity: 0,
+      duration: 0.6,
+      ease: 'power2.out',
+    }, '-=0.4')
+    .from('.feature-card', {
+      y: 100,
+      opacity: 0,
+      duration: 1,
+      stagger: 0.15,
+      ease: 'elastic.out(1, 0.5)',
+    }, '-=0.2');
+  }, []);
+
   const features = [
     { 
-      icon: '🤖', 
+      Icon: RobotIcon,
       title: 'FinanceGPT AI', 
       desc: '24/7 conversational AI assistant',
       gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
     },
     { 
-      icon: '💼', 
+      Icon: BriefcaseIcon,
       title: 'M&A Predictor', 
       desc: '6-factor AI scoring system',
       gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
     },
     { 
-      icon: '🎯', 
+      Icon: TargetIcon,
       title: 'Insider Flow', 
       desc: '14 pattern classification',
       gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
     },
     { 
-      icon: '📊', 
+      Icon: ChartIcon,
       title: 'ML Predictions', 
       desc: 'Multi-horizon trend forecasting',
       gradient: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
@@ -40,51 +69,28 @@ export const Scene3_Features = ({ duration }) => {
 
   return (
     <AbsoluteFill style={{ opacity }}>
-      <div style={styles.container}>
-        <h2 style={{
-          ...styles.title,
-          transform: `translateY(${interpolate(frame, [0, 40], [80, 0], { extrapolateRight: 'clamp' })}px)`,
-          opacity: interpolate(frame, [0, 40], [0, 1], { extrapolateRight: 'clamp' }),
-        }}>
+      <div ref={containerRef} style={styles.container}>
+        <h2 className="features-title" style={styles.title}>
           Institutional-Grade Tools
         </h2>
 
-        <p style={{
-          ...styles.subtitle,
-          opacity: interpolate(frame, [20, 50], [0, 1], { extrapolateRight: 'clamp' }),
-        }}>
+        <p className="features-subtitle" style={styles.subtitle}>
           Previously only available to hedge funds and professional traders
         </p>
 
         <div style={styles.featuresGrid}>
           {features.map((feature, index) => {
-            const cardDelay = 60 + index * 15;
-            const cardY = spring({
-              frame: frame - cardDelay,
-              fps,
-              config: { damping: 100, stiffness: 200 },
-            }) * 120 - 120;
-
-            const cardRotate = spring({
-              frame: frame - cardDelay,
-              fps,
-              config: { damping: 80, stiffness: 150 },
-            }) * 10 - 5;
-
-            const glowIntensity = Math.sin((frame - cardDelay) / 15) * 0.3 + 0.7;
+            const glowIntensity = 0.7 + Math.sin((frame + index * 30) / 20) * 0.3;
 
             return (
               <div
                 key={index}
+                className="feature-card"
                 style={{
                   ...styles.featureCard,
-                  transform: `translateY(${Math.max(cardY, 0)}px) rotateY(${cardRotate}deg)`,
-                  opacity: frame >= cardDelay ? 1 : 0,
-                  boxShadow: `0 20px 60px rgba(0, 0, 0, 0.4), 
-                              0 0 ${40 * glowIntensity}px ${feature.gradient.match(/#[a-f0-9]{6}/gi)?.[0] || '#667eea'}40`,
+                  boxShadow: `0 20px 60px rgba(0, 0, 0, 0.4), 0 0 ${40 * glowIntensity}px ${feature.gradient.match(/#[a-f0-9]{6}/gi)?.[0] || '#667eea'}40`,
                 }}
               >
-                {/* Glow background */}
                 <div style={{
                   position: 'absolute',
                   top: 0,
@@ -92,7 +98,7 @@ export const Scene3_Features = ({ duration }) => {
                   right: 0,
                   bottom: 0,
                   background: feature.gradient,
-                  opacity: 0.1,
+                  opacity: 0.08,
                   borderRadius: 28,
                   filter: 'blur(20px)',
                 }} />
@@ -100,14 +106,12 @@ export const Scene3_Features = ({ duration }) => {
                 <div style={{
                   ...styles.featureIcon,
                   background: feature.gradient,
-                  transform: `scale(${interpolate(frame, [cardDelay + 20, cardDelay + 40], [0.8, 1], { extrapolateRight: 'clamp' })})`,
                 }}>
-                  {feature.icon}
+                  <feature.Icon size={60} />
                 </div>
                 <h3 style={styles.featureTitle}>{feature.title}</h3>
                 <p style={styles.featureDesc}>{feature.desc}</p>
 
-                {/* Glassmorphism border */}
                 <div style={styles.cardBorder} />
               </div>
             );
@@ -122,7 +126,6 @@ const styles = {
   container: {
     width: '100%',
     height: '100%',
-    background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
@@ -132,7 +135,8 @@ const styles = {
   title: {
     fontSize: 72,
     fontWeight: 900,
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)',
+    background: 'linear-gradient(135deg, #60a5fa 0%, #818cf8 25%, #a78bfa 50%, #c084fc 75%, #e879f9 100%)',
+    backgroundSize: '200% auto',
     WebkitBackgroundClip: 'text',
     WebkitTextFillColor: 'transparent',
     textAlign: 'center',
@@ -160,8 +164,6 @@ const styles = {
     borderRadius: 28,
     padding: 50,
     textAlign: 'center',
-    transformStyle: 'preserve-3d',
-    transition: 'all 0.3s ease',
   },
   cardBorder: {
     position: 'absolute',
@@ -182,7 +184,6 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    fontSize: 60,
     boxShadow: '0 12px 40px rgba(0, 0, 0, 0.3)',
     position: 'relative',
     zIndex: 1,

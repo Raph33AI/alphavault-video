@@ -1,45 +1,74 @@
-import { AbsoluteFill, useCurrentFrame, interpolate, spring, useVideoConfig } from 'remotion';
+import { AbsoluteFill, useCurrentFrame, interpolate } from 'remotion';
+import { useEffect, useRef } from 'react';
+import { gsap } from 'gsap';
 
 export const Scene1_Logo = ({ duration }) => {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const containerRef = useRef(null);
 
   const opacity = interpolate(
     frame,
-    [0, 30, duration - 30, duration],
+    [0, 20, duration - 20, duration],
     [0, 1, 1, 0],
     { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
   );
 
-  const logoScale = spring({
-    frame,
-    fps,
-    config: { damping: 100, stiffness: 200 },
-  });
+  useEffect(() => {
+    if (!containerRef.current) return;
 
-  const glowIntensity = Math.sin(frame / 20) * 0.3 + 0.7;
+    const tl = gsap.timeline();
+    
+    tl.from('.logo-svg-path', {
+      strokeDashoffset: 500,
+      duration: 1.5,
+      ease: 'power2.out',
+    })
+    .from('.logo-circle', {
+      scale: 0,
+      opacity: 0,
+      duration: 0.8,
+      stagger: 0.15,
+      ease: 'back.out(2)',
+    }, '-=1')
+    .from('.main-title', {
+      y: 80,
+      opacity: 0,
+      duration: 1,
+      ease: 'power4.out',
+    }, '-=0.6')
+    .from('.subtitle', {
+      y: 40,
+      opacity: 0,
+      duration: 0.8,
+      ease: 'power3.out',
+    }, '-=0.5')
+    .from('.tagline', {
+      scale: 0.9,
+      opacity: 0,
+      duration: 0.8,
+      ease: 'elastic.out(1, 0.5)',
+    }, '-=0.4');
+  }, []);
 
   return (
     <AbsoluteFill style={{ opacity }}>
-      <div style={styles.container}>
-        {/* Logo SVG Animé */}
-        <div style={{
-          ...styles.logoContainer,
-          transform: `scale(${logoScale}) rotateY(${interpolate(frame, [0, 60], [360, 0])}deg)`,
-        }}>
+      <div ref={containerRef} style={styles.container}>
+        {/* Logo SVG */}
+        <div style={styles.logoContainer}>
           <div style={{
             ...styles.logoGlow,
-            opacity: glowIntensity,
+            opacity: 0.6 + Math.sin(frame / 20) * 0.3,
           }} />
           
-          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', height: '100%' }}>
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style={{ width: 400, height: 400 }}>
             <defs>
-              <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" style={{ stopColor: '#667eea', stopOpacity: 1 }} />
-                <stop offset="100%" style={{ stopColor: '#764ba2', stopOpacity: 1 }} />
+              <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style={{ stopColor: '#60a5fa' }} />
+                <stop offset="50%" style={{ stopColor: '#818cf8' }} />
+                <stop offset="100%" style={{ stopColor: '#a78bfa' }} />
               </linearGradient>
               <filter id="glow">
-                <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+                <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
                 <feMerge>
                   <feMergeNode in="coloredBlur"/>
                   <feMergeNode in="SourceGraphic"/>
@@ -47,65 +76,50 @@ export const Scene1_Logo = ({ duration }) => {
               </filter>
             </defs>
             
-            {/* Ligne graphique montante */}
             <path 
+              className="logo-svg-path"
               d="M 20 80 L 30 70 L 40 75 L 50 60 L 60 65 L 70 45 L 80 50 L 90 30" 
-              stroke="url(#logoGradient)" 
-              strokeWidth="4" 
+              stroke="url(#logoGrad)" 
+              strokeWidth="5" 
               fill="none" 
               strokeLinecap="round" 
               strokeLinejoin="round"
               filter="url(#glow)"
-              strokeDasharray={interpolate(frame, [0, 60], [200, 0])}
+              style={{
+                strokeDasharray: 500,
+                strokeDashoffset: 0,
+              }}
             />
             
-            {/* Points animés */}
-            <circle cx="30" cy="70" r="4" fill="url(#logoGradient)" 
-              opacity={interpolate(frame, [20, 30], [0, 1], { extrapolateRight: 'clamp' })} />
-            <circle cx="50" cy="60" r="4" fill="url(#logoGradient)"
-              opacity={interpolate(frame, [30, 40], [0, 1], { extrapolateRight: 'clamp' })} />
-            <circle cx="70" cy="45" r="4" fill="url(#logoGradient)"
-              opacity={interpolate(frame, [40, 50], [0, 1], { extrapolateRight: 'clamp' })} />
-            <circle cx="90" cy="30" r="5" fill="url(#logoGradient)"
-              opacity={interpolate(frame, [50, 60], [0, 1], { extrapolateRight: 'clamp' })} />
+            <circle className="logo-circle" cx="30" cy="70" r="5" fill="url(#logoGrad)" filter="url(#glow)" />
+            <circle className="logo-circle" cx="50" cy="60" r="5" fill="url(#logoGrad)" filter="url(#glow)" />
+            <circle className="logo-circle" cx="70" cy="45" r="5" fill="url(#logoGrad)" filter="url(#glow)" />
+            <circle className="logo-circle" cx="90" cy="30" r="6" fill="url(#logoGrad)" filter="url(#glow)" />
             
-            {/* Flèche */}
             <path 
+              className="logo-circle"
               d="M 85 35 L 90 30 L 85 25" 
-              stroke="url(#logoGradient)" 
-              strokeWidth="3" 
+              stroke="url(#logoGrad)" 
+              strokeWidth="4" 
               fill="none" 
               strokeLinecap="round"
               filter="url(#glow)"
-              opacity={interpolate(frame, [55, 65], [0, 1], { extrapolateRight: 'clamp' })}
             />
           </svg>
         </div>
 
-        {/* Titre principal */}
-        <h1 style={{
-          ...styles.mainTitle,
-          transform: `translateY(${interpolate(frame, [30, 60], [100, 0], { extrapolateRight: 'clamp' })}px)`,
-          opacity: interpolate(frame, [30, 60], [0, 1], { extrapolateRight: 'clamp' }),
-        }}>
+        {/* Titre */}
+        <h1 className="main-title" style={styles.mainTitle}>
           AlphaVault AI
         </h1>
 
         {/* Sous-titre */}
-        <p style={{
-          ...styles.subtitle,
-          transform: `translateY(${interpolate(frame, [45, 75], [50, 0], { extrapolateRight: 'clamp' })}px)`,
-          opacity: interpolate(frame, [45, 75], [0, 1], { extrapolateRight: 'clamp' }),
-        }}>
+        <p className="subtitle" style={styles.subtitle}>
           AI-Powered Financial Intelligence Platform
         </p>
 
-        {/* Tagline avec glassmorphism */}
-        <div style={{
-          ...styles.tagline,
-          transform: `scale(${interpolate(frame, [60, 90], [0.8, 1], { extrapolateRight: 'clamp' })})`,
-          opacity: interpolate(frame, [60, 90], [0, 1], { extrapolateRight: 'clamp' }),
-        }}>
+        {/* Tagline glassmorphism */}
+        <div className="tagline" style={styles.tagline}>
           Empowering Individual Investors with Institutional-Grade Analytics
         </div>
       </div>
@@ -117,7 +131,6 @@ const styles = {
   container: {
     width: '100%',
     height: '100%',
-    background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
@@ -125,34 +138,32 @@ const styles = {
     position: 'relative',
   },
   logoContainer: {
-    width: 400,
-    height: 400,
     position: 'relative',
     marginBottom: 40,
-    transformStyle: 'preserve-3d',
   },
   logoGlow: {
     position: 'absolute',
     top: '50%',
     left: '50%',
     transform: 'translate(-50%, -50%)',
-    width: '120%',
-    height: '120%',
-    background: 'radial-gradient(circle, rgba(102, 126, 234, 0.6) 0%, transparent 70%)',
-    filter: 'blur(80px)',
-    animation: 'pulse 3s ease-in-out infinite',
+    width: 500,
+    height: 500,
+    background: 'radial-gradient(circle, rgba(96, 165, 250, 0.6) 0%, transparent 70%)',
+    filter: 'blur(100px)',
+    pointerEvents: 'none',
   },
   mainTitle: {
     fontSize: 140,
     fontWeight: 900,
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)',
+    background: 'linear-gradient(135deg, #60a5fa 0%, #818cf8 25%, #a78bfa 50%, #c084fc 75%, #e879f9 100%)',
+    backgroundSize: '200% auto',
     WebkitBackgroundClip: 'text',
     WebkitTextFillColor: 'transparent',
     textAlign: 'center',
     margin: 0,
     marginBottom: 24,
-    textShadow: '0 0 40px rgba(102, 126, 234, 0.5)',
     letterSpacing: '-2px',
+    textShadow: '0 0 60px rgba(168, 85, 247, 0.5)',
   },
   subtitle: {
     fontSize: 42,
@@ -164,16 +175,16 @@ const styles = {
     textShadow: '0 2px 20px rgba(0, 0, 0, 0.5)',
   },
   tagline: {
-    background: 'rgba(255, 255, 255, 0.05)',
+    background: 'rgba(255, 255, 255, 0.08)',
     backdropFilter: 'blur(20px) saturate(180%)',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
+    border: '1px solid rgba(255, 255, 255, 0.15)',
     borderRadius: 24,
     padding: '24px 48px',
     fontSize: 32,
     color: 'rgba(255, 255, 255, 0.9)',
     fontWeight: 600,
     textAlign: 'center',
-    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+    boxShadow: '0 8px 32px rgba(59, 130, 246, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
     maxWidth: 1400,
   },
 };

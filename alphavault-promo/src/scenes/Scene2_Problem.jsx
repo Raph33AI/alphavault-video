@@ -1,69 +1,133 @@
 import { AbsoluteFill, useCurrentFrame, interpolate } from 'remotion';
+import { useEffect, useRef } from 'react';
+import { gsap } from 'gsap';
 
 export const Scene2_Problem = ({ duration }) => {
   const frame = useCurrentFrame();
+  const containerRef = useRef(null);
 
   const opacity = interpolate(
     frame,
-    [0, 30, duration - 30, duration],
+    [0, 15, duration - 15, duration],
     [0, 1, 1, 0],
     { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
   );
 
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const tl = gsap.timeline();
+    
+    tl.from('.problem-title', {
+      y: 60,
+      opacity: 0,
+      duration: 0.8,
+      ease: 'power4.out',
+    })
+    .from('.bloomberg-card', {
+      x: -300,
+      opacity: 0,
+      duration: 1,
+      ease: 'power3.out',
+    }, '-=0.3')
+    .from('.vs-divider', {
+      scale: 0,
+      opacity: 0,
+      duration: 0.6,
+      ease: 'elastic.out(1, 0.5)',
+    }, '-=0.5')
+    .from('.alphavault-card', {
+      x: 300,
+      opacity: 0,
+      duration: 1,
+      ease: 'power3.out',
+    }, '-=0.8')
+    .from('.tagline-problem', {
+      y: 30,
+      opacity: 0,
+      duration: 0.7,
+      ease: 'power2.out',
+    }, '-=0.4');
+  }, []);
+
   return (
     <AbsoluteFill style={{ opacity }}>
-      <div style={styles.container}>
-        <h2 style={{
-          ...styles.title,
-          transform: `translateY(${interpolate(frame, [0, 30], [100, 0], { extrapolateRight: 'clamp' })}px)`,
-          opacity: interpolate(frame, [0, 30], [0, 1], { extrapolateRight: 'clamp' }),
-        }}>
+      <div ref={containerRef} style={styles.container}>
+        <h2 className="problem-title" style={styles.title}>
           The Financial Intelligence Gap
         </h2>
 
         <div style={styles.comparison}>
           {/* Bloomberg Card */}
-          <div style={{
+          <div className="bloomberg-card" style={{
             ...styles.comparisonCard,
-            ...styles.cardExpensive,
-            transform: `translateX(${interpolate(frame, [30, 60], [-200, 0], { extrapolateRight: 'clamp' })}px)`,
-            opacity: interpolate(frame, [30, 60], [0, 1], { extrapolateRight: 'clamp' }),
+            borderColor: 'rgba(239, 68, 68, 0.5)',
+            boxShadow: `0 20px 60px rgba(239, 68, 68, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)`,
           }}>
-            <div style={styles.cardIcon}>😰</div>
+            <div style={styles.cardIcon}>
+              <svg width="80" height="80" viewBox="0 0 24 24" fill="none">
+                <path d="M12 2L2 7v10c0 5.5 3.8 10.7 10 12 6.2-1.3 10-6.5 10-12V7l-10-5z" 
+                  fill="url(#sadGradient)" opacity="0.9"/>
+                <defs>
+                  <linearGradient id="sadGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#ef4444" />
+                    <stop offset="100%" stopColor="#dc2626" />
+                  </linearGradient>
+                </defs>
+                <circle cx="9" cy="10" r="1.5" fill="white" />
+                <circle cx="15" cy="10" r="1.5" fill="white" />
+                <path d="M8 15c0-1 1-2 4-2s4 1 4 2" stroke="white" strokeWidth="2" strokeLinecap="round" transform="scale(1,-1) translate(0,-28)"/>
+              </svg>
+            </div>
             <h3 style={styles.cardTitle}>Bloomberg Terminal</h3>
-            <div style={styles.cardPrice}>$24,000<span style={styles.pricePeriod}>/year</span></div>
+            <div style={styles.cardPrice}>
+              $24,000<span style={styles.pricePeriod}>/year</span>
+            </div>
             <div style={styles.cardDesc}>Professional-only pricing</div>
             <div style={styles.cardLabel}>Out of reach for retail investors</div>
           </div>
 
           {/* VS Divider */}
-          <div style={{
+          <div className="vs-divider" style={{
             ...styles.vsDivider,
-            opacity: interpolate(frame, [60, 75], [0, 1], { extrapolateRight: 'clamp' }),
-            transform: `scale(${interpolate(frame, [60, 75], [0.5, 1], { extrapolateRight: 'clamp' })})`,
+            boxShadow: `0 8px 32px rgba(102, 126, 234, 0.4)`,
           }}>
             VS
           </div>
 
           {/* AlphaVault Card */}
-          <div style={{
+          <div className="alphavault-card" style={{
             ...styles.comparisonCard,
-            ...styles.cardAffordable,
-            transform: `translateX(${interpolate(frame, [45, 75], [200, 0], { extrapolateRight: 'clamp' })}px)`,
-            opacity: interpolate(frame, [45, 75], [0, 1], { extrapolateRight: 'clamp' }),
+            borderColor: 'rgba(16, 185, 129, 0.5)',
+            boxShadow: `0 20px 60px rgba(16, 185, 129, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)`,
           }}>
-            <div style={styles.cardIcon}>🚀</div>
+            <div style={styles.cardIcon}>
+              <svg width="80" height="80" viewBox="0 0 24 24" fill="none">
+                <defs>
+                  <linearGradient id="happyGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#10b981" />
+                    <stop offset="100%" stopColor="#059669" />
+                  </linearGradient>
+                </defs>
+                <path d="M12 2a10 10 0 0 1 10 10c0 3-1 5-3 7l-2 2-5 5-5-5-2-2c-2-2-3-4-3-7A10 10 0 0 1 12 2z" 
+                  fill="url(#happyGradient)" opacity="0.9" />
+                <circle cx="9" cy="10" r="1.5" fill="white" />
+                <circle cx="15" cy="10" r="1.5" fill="white" />
+                <path d="M7 14s1.5 2 5 2 5-2 5-2" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+            </div>
             <h3 style={styles.cardTitle}>AlphaVault AI</h3>
-            <div style={styles.cardPrice}>$20<span style={styles.pricePeriod}>/month</span></div>
+            <div style={styles.cardPrice}>
+              $20<span style={styles.pricePeriod}>/month</span>
+            </div>
             <div style={styles.cardDesc}>Platinum Plan</div>
-            <div style={styles.cardLabel}>100x more affordable</div>
+            <div style={{ ...styles.cardLabel, color: '#10b981' }}>
+              <strong>100x</strong> more affordable
+            </div>
           </div>
         </div>
 
-        <div style={{
-          ...styles.tagline,
-          opacity: interpolate(frame, [90, 120], [0, 1], { extrapolateRight: 'clamp' }),
-        }}>
+        <div className="tagline-problem" style={styles.tagline}>
           <strong>Institutional-grade tools</strong> at consumer-friendly prices
         </div>
       </div>
@@ -75,7 +139,6 @@ const styles = {
   container: {
     width: '100%',
     height: '100%',
-    background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
@@ -91,6 +154,7 @@ const styles = {
     textAlign: 'center',
     margin: 0,
     marginBottom: 80,
+    textShadow: '0 4px 20px rgba(239, 68, 68, 0.3)',
   },
   comparison: {
     display: 'flex',
@@ -106,19 +170,12 @@ const styles = {
     padding: 50,
     textAlign: 'center',
     minWidth: 450,
-    boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
-  },
-  cardExpensive: {
-    borderColor: 'rgba(239, 68, 68, 0.5)',
-    boxShadow: '0 20px 60px rgba(239, 68, 68, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
-  },
-  cardAffordable: {
-    borderColor: 'rgba(16, 185, 129, 0.5)',
-    boxShadow: '0 20px 60px rgba(16, 185, 129, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+    position: 'relative',
   },
   cardIcon: {
-    fontSize: 80,
-    marginBottom: 20,
+    marginBottom: 24,
+    display: 'flex',
+    justifyContent: 'center',
   },
   cardTitle: {
     fontSize: 36,
@@ -158,7 +215,6 @@ const styles = {
     padding: '20px 30px',
     borderRadius: 20,
     border: '3px solid rgba(255, 255, 255, 0.2)',
-    boxShadow: '0 8px 32px rgba(102, 126, 234, 0.4)',
   },
   tagline: {
     fontSize: 38,

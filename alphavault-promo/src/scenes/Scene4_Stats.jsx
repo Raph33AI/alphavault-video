@@ -1,14 +1,43 @@
 import { AbsoluteFill, useCurrentFrame, interpolate } from 'remotion';
+import { useEffect, useRef } from 'react';
+import { gsap } from 'gsap';
 
 export const Scene4_Stats = ({ duration }) => {
   const frame = useCurrentFrame();
+  const containerRef = useRef(null);
 
   const opacity = interpolate(
     frame,
-    [0, 30, duration - 30, duration],
+    [0, 15, duration - 15, duration],
     [0, 1, 1, 0],
     { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
   );
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const tl = gsap.timeline();
+    
+    tl.from('.stats-title', {
+      y: 60,
+      opacity: 0,
+      duration: 0.8,
+      ease: 'power4.out',
+    })
+    .from('.stat-card', {
+      scale: 0.8,
+      opacity: 0,
+      duration: 1,
+      stagger: 0.15,
+      ease: 'elastic.out(1, 0.5)',
+    }, '-=0.3')
+    .from('.tagline-stats', {
+      y: 30,
+      opacity: 0,
+      duration: 0.7,
+      ease: 'power2.out',
+    }, '-=0.4');
+  }, []);
 
   const stats = [
     { 
@@ -43,22 +72,18 @@ export const Scene4_Stats = ({ duration }) => {
 
   return (
     <AbsoluteFill style={{ opacity }}>
-      <div style={styles.container}>
-        <h2 style={{
-          ...styles.title,
-          opacity: interpolate(frame, [0, 30], [0, 1], { extrapolateRight: 'clamp' }),
-        }}>
+      <div ref={containerRef} style={styles.container}>
+        <h2 className="stats-title" style={styles.title}>
           Massive Market Opportunity
         </h2>
 
         <div style={styles.statsGrid}>
           {stats.map((stat, index) => {
-            const statDelay = 40 + index * 20;
+            const statDelay = 30 + index * 15;
             
-            // Animation du compteur
             const animatedValue = interpolate(
               frame,
-              [statDelay, statDelay + 60],
+              [statDelay, statDelay + 50],
               [0, stat.value],
               { extrapolateRight: 'clamp' }
             );
@@ -67,27 +92,17 @@ export const Scene4_Stats = ({ duration }) => {
               ? (stat.value >= 10 ? animatedValue.toFixed(1) : Math.floor(animatedValue))
               : 0;
 
-            const cardScale = interpolate(
-              frame,
-              [statDelay, statDelay + 30],
-              [0.8, 1],
-              { extrapolateRight: 'clamp' }
-            );
-
-            const glowIntensity = Math.sin((frame - statDelay) / 20) * 0.4 + 0.6;
+            const glowIntensity = 0.6 + Math.sin((frame - statDelay + index * 20) / 20) * 0.4;
 
             return (
               <div
                 key={index}
+                className="stat-card"
                 style={{
                   ...styles.statCard,
-                  transform: `scale(${cardScale})`,
-                  opacity: frame >= statDelay ? 1 : 0,
-                  boxShadow: `0 20px 60px ${stat.color}40, 
-                              0 0 ${60 * glowIntensity}px ${stat.color}30`,
+                  boxShadow: `0 20px 60px ${stat.color}40, 0 0 ${60 * glowIntensity}px ${stat.color}30`,
                 }}
               >
-                {/* Animated gradient background */}
                 <div style={{
                   position: 'absolute',
                   top: 0,
@@ -107,17 +122,13 @@ export const Scene4_Stats = ({ duration }) => {
                 </div>
                 <div style={styles.statLabel}>{stat.label}</div>
 
-                {/* Glassmorphism border */}
                 <div style={styles.statBorder} />
               </div>
             );
           })}
         </div>
 
-        <div style={{
-          ...styles.tagline,
-          opacity: interpolate(frame, [200, 240], [0, 1], { extrapolateRight: 'clamp' }),
-        }}>
+        <div className="tagline-stats" style={styles.tagline}>
           <strong>$160M</strong> Serviceable Obtainable Market (5-year target)
         </div>
       </div>
@@ -129,7 +140,6 @@ const styles = {
   container: {
     width: '100%',
     height: '100%',
-    background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
@@ -138,7 +148,8 @@ const styles = {
   title: {
     fontSize: 72,
     fontWeight: 900,
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)',
+    background: 'linear-gradient(135deg, #60a5fa 0%, #818cf8 25%, #a78bfa 50%, #c084fc 75%, #e879f9 100%)',
+    backgroundSize: '200% auto',
     WebkitBackgroundClip: 'text',
     WebkitTextFillColor: 'transparent',
     textAlign: 'center',
