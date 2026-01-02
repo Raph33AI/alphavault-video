@@ -4,7 +4,8 @@
   "description": "AlphaVault AI Marketing Video",
   "scripts": {
     "start": "remotion studio",
-    "build": "remotion render Video AlphaVaultPromo out/video.mp4",
+    "build": "remotion render AlphaVaultPromo out/video.mp4",
+    "studio:build": "remotion studio build --output public",
     "upgrade": "remotion upgrade"
   },
   "dependencies": {
@@ -16,7 +17,6 @@
   "devDependencies": {
     "@remotion/cli": "^4.0.398",
     "@remotion/bundler": "^4.0.398",
-    "@remotion/eslint-config": "^4.0.398",
-    "eslint": "^8.57.0"
+    "@remotion/eslint-config": "^4.0.398"
   }
 }
