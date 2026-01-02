@@ -1,0 +1,22 @@
+{
+  "name": "alphavault-promo",
+  "version": "1.0.0",
+  "description": "AlphaVault AI Marketing Video",
+  "scripts": {
+    "start": "remotion studio",
+    "build": "remotion render Video AlphaVaultPromo out/video.mp4",
+    "upgrade": "remotion upgrade"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "remotion": "^4.0.398",
+    "gsap": "^3.12.5"
+  },
+  "devDependencies": {
+    "@remotion/cli": "^4.0.398",
+    "@remotion/bundler": "^4.0.398",
+    "@remotion/eslint-config": "^4.0.398",
+    "eslint": "^8.57.0"
+  }
+}
