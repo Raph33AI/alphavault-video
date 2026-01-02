@@ -1,10 +1,12 @@
 {
   "name": "alphavault-promo",
-  "version": "1.0.0",
-  "description": "AlphaVault AI Marketing Video",
+  "version": "2.0.0",
+  "description": "AlphaVault AI - Ultra Professional Marketing Video with GSAP Advanced Techniques",
   "scripts": {
     "start": "remotion studio",
-    "build": "remotion render AlphaVaultPromo out/video.mp4",
+    "build": "remotion render AlphaVaultPromo out/alphavault-promo.mp4 --codec=h264 --crf=18",
+    "build-4k": "remotion render AlphaVaultPromo out/alphavault-promo-4k.mp4 --codec=h264 --crf=18 --scale=2",
+    "build-gif": "remotion render AlphaVaultPromo out/alphavault-promo.gif --codec=gif",
     "studio:build": "remotion studio build --output public",
     "upgrade": "remotion upgrade"
   },
@@ -17,6 +19,7 @@
   "devDependencies": {
     "@remotion/cli": "^4.0.398",
     "@remotion/bundler": "^4.0.398",
-    "@remotion/eslint-config": "^4.0.398"
+    "@remotion/eslint-config": "^4.0.398",
+    "eslint": "^8.57.0"
   }
 }

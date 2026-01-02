@@ -8,7 +8,7 @@ export const Scene2_Problem = ({ duration }) => {
 
   const opacity = interpolate(
     frame,
-    [0, 15, duration - 15, duration],
+    [0, 10, duration - 10, duration],
     [0, 1, 1, 0],
     { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
   );
@@ -18,117 +18,154 @@ export const Scene2_Problem = ({ duration }) => {
 
     const tl = gsap.timeline();
     
-    tl.from('.problem-title', {
-      y: 60,
+    // 1. Title reveal with perspective
+    tl.from('.problem-title-main', {
+      z: -500,
+      rotationX: 90,
+      opacity: 0,
+      duration: 1.2,
+      ease: 'power4.out',
+    });
+
+    // 2. Bloomberg card - FLIP from center
+    tl.fromTo('.bloomberg-card-flip', {
+      x: 0,
+      y: 0,
+      scale: 0.5,
+      rotationY: 180,
+      opacity: 0,
+    }, {
+      x: 0,
+      scale: 1,
+      rotationY: 0,
+      opacity: 1,
+      duration: 1.2,
+      ease: 'power3.out',
+    }, '-=0.5');
+
+    // 3. VS morphing circle to text
+    tl.from('.vs-morph', {
+      scale: 0,
+      rotation: 720,
       opacity: 0,
       duration: 0.8,
-      ease: 'power4.out',
-    })
-    .from('.bloomberg-card', {
-      x: -300,
+      ease: 'back.out(3)',
+    }, '-=0.6');
+
+    // 4. AlphaVault card - FLIP from center
+    tl.fromTo('.alphavault-card-flip', {
+      x: 0,
+      y: 0,
+      scale: 0.5,
+      rotationY: -180,
       opacity: 0,
-      duration: 1,
+    }, {
+      x: 0,
+      scale: 1,
+      rotationY: 0,
+      opacity: 1,
+      duration: 1.2,
       ease: 'power3.out',
-    }, '-=0.3')
-    .from('.vs-divider', {
-      scale: 0,
-      opacity: 0,
-      duration: 0.6,
-      ease: 'elastic.out(1, 0.5)',
-    }, '-=0.5')
-    .from('.alphavault-card', {
-      x: 300,
-      opacity: 0,
-      duration: 1,
-      ease: 'power3.out',
-    }, '-=0.8')
-    .from('.tagline-problem', {
-      y: 30,
-      opacity: 0,
-      duration: 0.7,
-      ease: 'power2.out',
+    }, '-=1');
+
+    // 5. Comparison line drawing
+    tl.from('.comparison-line', {
+      scaleX: 0,
+      duration: 0.8,
+      ease: 'power2.inOut',
     }, '-=0.4');
+
+    // 6. Tagline reveal
+    tl.from('.tagline-problem', {
+      y: 50,
+      opacity: 0,
+      duration: 0.8,
+      ease: 'power3.out',
+    }, '-=0.3');
+
   }, []);
 
+  const vsRotation = Math.sin(frame / 15) * 10;
+
   return (
-    <AbsoluteFill style={{ opacity }}>
+    <AbsoluteFill style={{ opacity, perspective: 2000 }}>
       <div ref={containerRef} style={styles.container}>
-        <h2 className="problem-title" style={styles.title}>
-          The Financial Intelligence Gap
+        <h2 className="problem-title-main" style={styles.title}>
+          Professional Tools at Consumer Prices
         </h2>
 
+        <div className="comparison-line" style={styles.comparisonLine} />
+
         <div style={styles.comparison}>
-          {/* Bloomberg Card */}
-          <div className="bloomberg-card" style={{
-            ...styles.comparisonCard,
-            borderColor: 'rgba(239, 68, 68, 0.5)',
-            boxShadow: `0 20px 60px rgba(239, 68, 68, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)`,
+          {/* Bloomberg */}
+          <div className="bloomberg-card-flip" style={{
+            ...styles.card,
+            ...styles.bloombergCard,
           }}>
-            <div style={styles.cardIcon}>
-              <svg width="80" height="80" viewBox="0 0 24 24" fill="none">
-                <path d="M12 2L2 7v10c0 5.5 3.8 10.7 10 12 6.2-1.3 10-6.5 10-12V7l-10-5z" 
-                  fill="url(#sadGradient)" opacity="0.9"/>
+            <div style={styles.cardIconWrapper}>
+              <svg width="90" height="90" viewBox="0 0 24 24" fill="none">
+                <rect x="3" y="3" width="18" height="18" rx="3" fill="url(#blockGrad)" opacity="0.9"/>
                 <defs>
-                  <linearGradient id="sadGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <linearGradient id="blockGrad" x1="0%" y1="0%" x2="100%" y2="100%">
                     <stop offset="0%" stopColor="#ef4444" />
                     <stop offset="100%" stopColor="#dc2626" />
                   </linearGradient>
                 </defs>
-                <circle cx="9" cy="10" r="1.5" fill="white" />
-                <circle cx="15" cy="10" r="1.5" fill="white" />
-                <path d="M8 15c0-1 1-2 4-2s4 1 4 2" stroke="white" strokeWidth="2" strokeLinecap="round" transform="scale(1,-1) translate(0,-28)"/>
+                <path d="M8 8h8M8 12h8M8 16h5" stroke="white" strokeWidth="2" strokeLinecap="round"/>
               </svg>
             </div>
+            
             <h3 style={styles.cardTitle}>Bloomberg Terminal</h3>
-            <div style={styles.cardPrice}>
-              $24,000<span style={styles.pricePeriod}>/year</span>
+            <div style={styles.price}>
+              $24,000
+              <span style={styles.period}>/year</span>
             </div>
-            <div style={styles.cardDesc}>Professional-only pricing</div>
-            <div style={styles.cardLabel}>Out of reach for retail investors</div>
+            <div style={styles.cardTag}>Institutional Only</div>
           </div>
 
-          {/* VS Divider */}
-          <div className="vs-divider" style={{
-            ...styles.vsDivider,
-            boxShadow: `0 8px 32px rgba(102, 126, 234, 0.4)`,
+          {/* VS with morphing */}
+          <div className="vs-morph" style={{
+            ...styles.vsText,
+            transform: `rotate(${vsRotation}deg) scale(${1 + Math.abs(Math.sin(frame / 20)) * 0.1})`,
           }}>
             VS
           </div>
 
-          {/* AlphaVault Card */}
-          <div className="alphavault-card" style={{
-            ...styles.comparisonCard,
-            borderColor: 'rgba(16, 185, 129, 0.5)',
-            boxShadow: `0 20px 60px rgba(16, 185, 129, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)`,
+          {/* AlphaVault */}
+          <div className="alphavault-card-flip" style={{
+            ...styles.card,
+            ...styles.alphavaultCard,
           }}>
-            <div style={styles.cardIcon}>
-              <svg width="80" height="80" viewBox="0 0 24 24" fill="none">
+            <div style={styles.cardIconWrapper}>
+              <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" width="90" height="90">
                 <defs>
-                  <linearGradient id="happyGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <linearGradient id="avGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
                     <stop offset="0%" stopColor="#10b981" />
                     <stop offset="100%" stopColor="#059669" />
                   </linearGradient>
                 </defs>
-                <path d="M12 2a10 10 0 0 1 10 10c0 3-1 5-3 7l-2 2-5 5-5-5-2-2c-2-2-3-4-3-7A10 10 0 0 1 12 2z" 
-                  fill="url(#happyGradient)" opacity="0.9" />
-                <circle cx="9" cy="10" r="1.5" fill="white" />
-                <circle cx="15" cy="10" r="1.5" fill="white" />
-                <path d="M7 14s1.5 2 5 2 5-2 5-2" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                <path d="M 20 80 L 30 70 L 40 75 L 50 60 L 60 65 L 70 45 L 80 50 L 90 30" 
+                  stroke="url(#avGrad2)" strokeWidth="6" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+                <circle cx="30" cy="70" r="5" fill="url(#avGrad2)"/>
+                <circle cx="50" cy="60" r="5" fill="url(#avGrad2)"/>
+                <circle cx="70" cy="45" r="5" fill="url(#avGrad2)"/>
+                <circle cx="90" cy="30" r="6" fill="url(#avGrad2)"/>
               </svg>
             </div>
+            
             <h3 style={styles.cardTitle}>AlphaVault AI</h3>
-            <div style={styles.cardPrice}>
-              $20<span style={styles.pricePeriod}>/month</span>
+            <div style={styles.price}>
+              $20
+              <span style={styles.period}>/month</span>
             </div>
-            <div style={styles.cardDesc}>Platinum Plan</div>
-            <div style={{ ...styles.cardLabel, color: '#10b981' }}>
-              <strong>100x</strong> more affordable
+            <div style={{ ...styles.cardTag, ...styles.successTag }}>
+              <strong>100x</strong> More Affordable
             </div>
           </div>
         </div>
 
         <div className="tagline-problem" style={styles.tagline}>
-          <strong>Institutional-grade tools</strong> at consumer-friendly prices
+          Institutional-grade analytics accessible to <strong>everyone</strong>
         </div>
       </div>
     </AbsoluteFill>
@@ -144,82 +181,95 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
     padding: '0 100px',
+    transformStyle: 'preserve-3d',
   },
   title: {
-    fontSize: 80,
+    fontSize: 76,
     fontWeight: 900,
-    background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
+    color: 'white',
     textAlign: 'center',
     margin: 0,
     marginBottom: 80,
-    textShadow: '0 4px 20px rgba(239, 68, 68, 0.3)',
+    textShadow: '0 4px 30px rgba(59, 130, 246, 0.5)',
+  },
+  comparisonLine: {
+    width: '80%',
+    height: 2,
+    background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)',
+    marginBottom: 60,
+    transformOrigin: 'center',
   },
   comparison: {
     display: 'flex',
     alignItems: 'center',
-    gap: 60,
+    gap: 100,
     marginBottom: 60,
   },
-  comparisonCard: {
+  card: {
     background: 'rgba(255, 255, 255, 0.05)',
-    backdropFilter: 'blur(20px) saturate(180%)',
+    backdropFilter: 'blur(30px) saturate(180%)',
     border: '2px solid rgba(255, 255, 255, 0.1)',
     borderRadius: 32,
     padding: 50,
     textAlign: 'center',
-    minWidth: 450,
-    position: 'relative',
+    minWidth: 420,
+    transformStyle: 'preserve-3d',
+    boxShadow: '0 25px 80px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
   },
-  cardIcon: {
-    marginBottom: 24,
-    display: 'flex',
-    justifyContent: 'center',
+  bloombergCard: {
+    borderColor: 'rgba(239, 68, 68, 0.5)',
+  },
+  alphavaultCard: {
+    borderColor: 'rgba(16, 185, 129, 0.5)',
+  },
+  cardIconWrapper: {
+    marginBottom: 20,
   },
   cardTitle: {
     fontSize: 36,
     fontWeight: 800,
     color: 'white',
-    margin: 0,
-    marginBottom: 20,
+    margin: '0 0 20px 0',
   },
-  cardPrice: {
+  price: {
     fontSize: 72,
     fontWeight: 900,
     color: 'white',
-    margin: 0,
-    marginBottom: 12,
+    marginBottom: 16,
   },
-  pricePeriod: {
-    fontSize: 32,
+  period: {
+    fontSize: 30,
     fontWeight: 600,
     color: 'rgba(255, 255, 255, 0.7)',
   },
-  cardDesc: {
-    fontSize: 24,
-    color: 'rgba(255, 255, 255, 0.8)',
-    marginBottom: 16,
-  },
-  cardLabel: {
+  cardTag: {
     fontSize: 20,
     color: 'rgba(255, 255, 255, 0.6)',
-    fontStyle: 'italic',
+    fontWeight: 600,
+    padding: '8px 20px',
+    border: '2px solid rgba(255, 255, 255, 0.2)',
+    borderRadius: 20,
+    display: 'inline-block',
   },
-  vsDivider: {
-    fontSize: 56,
+  successTag: {
+    color: '#10b981',
+    borderColor: '#10b981',
+  },
+  vsText: {
+    fontSize: 60,
     fontWeight: 900,
     background: 'linear-gradient(135deg, #667eea, #764ba2)',
     WebkitBackgroundClip: 'text',
     WebkitTextFillColor: 'transparent',
-    padding: '20px 30px',
-    borderRadius: 20,
+    padding: '20px 40px',
+    borderRadius: 24,
     border: '3px solid rgba(255, 255, 255, 0.2)',
+    boxShadow: '0 12px 40px rgba(102, 126, 234, 0.4)',
   },
   tagline: {
     fontSize: 38,
     color: 'rgba(255, 255, 255, 0.9)',
     textAlign: 'center',
-    fontWeight: 600,
+    fontWeight: 500,
   },
 };

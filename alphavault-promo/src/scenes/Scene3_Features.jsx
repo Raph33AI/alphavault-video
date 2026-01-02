@@ -1,15 +1,16 @@
-import { AbsoluteFill, useCurrentFrame, interpolate } from 'remotion';
+import { AbsoluteFill, useCurrentFrame, interpolate, useVideoConfig } from 'remotion';
 import { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
-import { RobotIcon, BriefcaseIcon, TargetIcon, ChartIcon } from '../components/Icons';
 
 export const Scene3_Features = ({ duration }) => {
   const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
   const containerRef = useRef(null);
+  const cardsRef = useRef([]);
 
   const opacity = interpolate(
     frame,
-    [0, 15, duration - 15, duration],
+    [0, 10, duration - 10, duration],
     [0, 1, 1, 0],
     { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
   );
@@ -19,76 +20,132 @@ export const Scene3_Features = ({ duration }) => {
 
     const tl = gsap.timeline();
     
-    tl.from('.features-title', {
-      y: 60,
+    // 1. Title with glitch effect
+    tl.from('.features-title-glitch', {
       opacity: 0,
+      scale: 0.8,
       duration: 0.8,
       ease: 'power4.out',
-    })
-    .from('.features-subtitle', {
-      y: 30,
-      opacity: 0,
-      duration: 0.6,
-      ease: 'power2.out',
-    }, '-=0.4')
-    .from('.feature-card', {
-      y: 100,
-      opacity: 0,
-      duration: 1,
-      stagger: 0.15,
-      ease: 'elastic.out(1, 0.5)',
-    }, '-=0.2');
+    });
+
+    // Glitch animation
+    for (let i = 0; i < 6; i++) {
+      tl.to('.features-title-glitch', {
+        x: gsap.utils.random(-5, 5),
+        y: gsap.utils.random(-5, 5),
+        duration: 0.05,
+      });
+    }
+    tl.to('.features-title-glitch', { x: 0, y: 0, duration: 0.1 });
+
+    // 2. Cards in 3D carousel formation
+    cardsRef.current.forEach((card, i) => {
+      if (card) {
+        const radius = 800;
+        const angle = (i / 8) * Math.PI * 2;
+        const x = Math.cos(angle) * radius;
+        const z = Math.sin(angle) * radius;
+        
+        gsap.set(card, {
+          x,
+          z,
+          rotationY: -(angle * 180) / Math.PI,
+        });
+
+        tl.from(card, {
+          opacity: 0,
+          scale: 0.5,
+          duration: 1,
+          ease: 'elastic.out(1, 0.5)',
+        }, 0.3 + i * 0.1);
+      }
+    });
+
   }, []);
+
+  // Carousel rotation
+  const carouselRotation = (frame * 0.3) % 360;
 
   const features = [
     { 
-      Icon: RobotIcon,
-      title: 'FinanceGPT AI', 
-      desc: '24/7 conversational AI assistant',
+      title: 'AI Analysis', 
+      desc: 'ML predictions',
       gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      icon: 'M12 2a10 10 0 0 1 10 10c0 5.5-10 18-10 18S2 17.5 2 12A10 10 0 0 1 12 2z',
     },
     { 
-      Icon: BriefcaseIcon,
-      title: 'M&A Predictor', 
-      desc: '6-factor AI scoring system',
+      title: 'IPO Intelligence', 
+      desc: 'Real-time detection',
       gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+      icon: 'M12 2L2 7v6c0 5.5 4.5 10.5 10 12 5.5-1.5 10-6.5 10-12V7l-10-5z',
     },
     { 
-      Icon: TargetIcon,
-      title: 'Insider Flow', 
-      desc: '14 pattern classification',
+      title: 'M&A Screening', 
+      desc: 'SEC analysis',
       gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+      icon: 'M20 6L9 17l-5-5',
     },
     { 
-      Icon: ChartIcon,
-      title: 'ML Predictions', 
-      desc: 'Multi-horizon trend forecasting',
+      title: 'Portfolio Optimizer', 
+      desc: 'Markowitz',
       gradient: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+      icon: 'M3 3v18h18',
+    },
+    { 
+      title: 'Monte Carlo', 
+      desc: '10K simulations',
+      gradient: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+      icon: 'M12 8v8m-4-4h8',
+    },
+    { 
+      title: 'Technical Indicators', 
+      desc: 'RSI, MACD',
+      gradient: 'linear-gradient(135deg, #30cfd0 0%, #330867 100%)',
+      icon: 'M3 15l4-8 4 4 5-6 5 6',
+    },
+    { 
+      title: 'News Terminal', 
+      desc: 'Sentiment AI',
+      gradient: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
+      icon: 'M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10l6 6v8a2 2 0 0 1-2 2z',
+    },
+    { 
+      title: 'Community Hub', 
+      desc: 'Expert analyses',
+      gradient: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
+      icon: 'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2',
     },
   ];
 
   return (
-    <AbsoluteFill style={{ opacity }}>
+    <AbsoluteFill style={{ opacity, perspective: 1500 }}>
       <div ref={containerRef} style={styles.container}>
-        <h2 className="features-title" style={styles.title}>
-          Institutional-Grade Tools
+        <h2 className="features-title-glitch" style={styles.title}>
+          Everything You Need to Excel
         </h2>
 
-        <p className="features-subtitle" style={styles.subtitle}>
-          Previously only available to hedge funds and professional traders
-        </p>
-
-        <div style={styles.featuresGrid}>
+        <div style={{
+          ...styles.carousel,
+          transform: `rotateY(${carouselRotation}deg)`,
+        }}>
           {features.map((feature, index) => {
-            const glowIntensity = 0.7 + Math.sin((frame + index * 30) / 20) * 0.3;
+            const radius = 800;
+            const angle = (index / 8) * Math.PI * 2 - (carouselRotation * Math.PI) / 180;
+            const x = Math.cos(angle) * radius;
+            const z = Math.sin(angle) * radius;
+            const rotationY = -(angle * 180) / Math.PI;
+            const scale = interpolate(z, [-radius, radius], [0.7, 1]);
+            const cardOpacity = interpolate(z, [-radius, 0, radius], [0.3, 1, 0.3]);
 
             return (
               <div
                 key={index}
-                className="feature-card"
+                ref={el => cardsRef.current[index] = el}
                 style={{
-                  ...styles.featureCard,
-                  boxShadow: `0 20px 60px rgba(0, 0, 0, 0.4), 0 0 ${40 * glowIntensity}px ${feature.gradient.match(/#[a-f0-9]{6}/gi)?.[0] || '#667eea'}40`,
+                  ...styles.card,
+                  transform: `translateX(${x}px) translateZ(${z}px) rotateY(${rotationY}deg) scale(${scale})`,
+                  opacity: cardOpacity,
+                  zIndex: Math.round(z),
                 }}
               >
                 <div style={{
@@ -98,19 +155,22 @@ export const Scene3_Features = ({ duration }) => {
                   right: 0,
                   bottom: 0,
                   background: feature.gradient,
-                  opacity: 0.08,
-                  borderRadius: 28,
+                  opacity: 0.1,
+                  borderRadius: 24,
                   filter: 'blur(20px)',
                 }} />
 
                 <div style={{
-                  ...styles.featureIcon,
+                  ...styles.icon,
                   background: feature.gradient,
                 }}>
-                  <feature.Icon size={60} />
+                  <svg width="50" height="50" viewBox="0 0 24 24" fill="none">
+                    <path d={feature.icon} stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
                 </div>
-                <h3 style={styles.featureTitle}>{feature.title}</h3>
-                <p style={styles.featureDesc}>{feature.desc}</p>
+
+                <h3 style={styles.cardTitle}>{feature.title}</h3>
+                <p style={styles.cardDesc}>{feature.desc}</p>
 
                 <div style={styles.cardBorder} />
               </div>
@@ -130,7 +190,7 @@ const styles = {
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: '0 80px',
+    transformStyle: 'preserve-3d',
   },
   title: {
     fontSize: 72,
@@ -141,29 +201,31 @@ const styles = {
     WebkitTextFillColor: 'transparent',
     textAlign: 'center',
     margin: 0,
-    marginBottom: 20,
-  },
-  subtitle: {
-    fontSize: 32,
-    color: 'rgba(255, 255, 255, 0.8)',
-    textAlign: 'center',
-    margin: 0,
-    marginBottom: 80,
-    fontWeight: 500,
-  },
-  featuresGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(2, 1fr)',
-    gap: 40,
-    maxWidth: 1600,
-  },
-  featureCard: {
+    marginBottom: 100,
     position: 'relative',
-    background: 'rgba(255, 255, 255, 0.03)',
+    zIndex: 100,
+  },
+  carousel: {
+    position: 'relative',
+    width: '100%',
+    height: 500,
+    transformStyle: 'preserve-3d',
+  },
+  card: {
+    position: 'absolute',
+    left: '50%',
+    top: '50%',
+    marginLeft: -180,
+    marginTop: -150,
+    width: 360,
+    height: 300,
+    background: 'rgba(255, 255, 255, 0.05)',
     backdropFilter: 'blur(40px) saturate(180%)',
-    borderRadius: 28,
-    padding: 50,
+    borderRadius: 24,
+    padding: 40,
     textAlign: 'center',
+    transformStyle: 'preserve-3d',
+    backfaceVisibility: 'hidden',
   },
   cardBorder: {
     position: 'absolute',
@@ -171,16 +233,15 @@ const styles = {
     left: 0,
     right: 0,
     bottom: 0,
-    borderRadius: 28,
+    borderRadius: 24,
     border: '2px solid rgba(255, 255, 255, 0.1)',
     pointerEvents: 'none',
-    background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 100%)',
   },
-  featureIcon: {
-    width: 120,
-    height: 120,
-    margin: '0 auto 30px',
-    borderRadius: 30,
+  icon: {
+    width: 90,
+    height: 90,
+    margin: '0 auto 20px',
+    borderRadius: 22,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -188,17 +249,17 @@ const styles = {
     position: 'relative',
     zIndex: 1,
   },
-  featureTitle: {
-    fontSize: 38,
+  cardTitle: {
+    fontSize: 28,
     fontWeight: 800,
     color: 'white',
     margin: 0,
-    marginBottom: 16,
+    marginBottom: 10,
     position: 'relative',
     zIndex: 1,
   },
-  featureDesc: {
-    fontSize: 24,
+  cardDesc: {
+    fontSize: 18,
     color: 'rgba(255, 255, 255, 0.7)',
     margin: 0,
     fontWeight: 500,

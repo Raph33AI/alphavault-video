@@ -1,15 +1,15 @@
 import { AbsoluteFill, useCurrentFrame, interpolate } from 'remotion';
 import { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
-import { RocketIcon, StarIcon, CrownIcon } from '../components/Icons';
 
 export const Scene5_Pricing = ({ duration }) => {
   const frame = useCurrentFrame();
   const containerRef = useRef(null);
+  const cardsRef = useRef([]);
 
   const opacity = interpolate(
     frame,
-    [0, 15, duration - 15, duration],
+    [0, 10, duration - 10, duration],
     [0, 1, 1, 0],
     { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
   );
@@ -19,84 +19,106 @@ export const Scene5_Pricing = ({ duration }) => {
 
     const tl = gsap.timeline();
     
-    tl.from('.pricing-title', {
-      y: 60,
-      opacity: 0,
-      duration: 0.8,
-      ease: 'power4.out',
-    })
-    .from('.pricing-subtitle', {
-      y: 30,
-      opacity: 0,
-      duration: 0.6,
-      ease: 'power2.out',
-    }, '-=0.4')
-    .from('.pricing-card', {
-      y: 80,
+    // 1. Title reveal
+    tl.from('.pricing-title-reveal', {
+      y: 100,
+      rotationX: -90,
       opacity: 0,
       duration: 1,
-      stagger: 0.15,
-      ease: 'elastic.out(1, 0.5)',
-    }, '-=0.2');
+      ease: 'power4.out',
+    });
+
+    // 2. Cards - Fan layout animation
+    cardsRef.current.forEach((card, i) => {
+      if (card) {
+        const fanAngle = (i - 1) * 15; // -15deg, 0deg, 15deg
+        const initialAngle = (i - 1) * 120;
+        
+        gsap.set(card, {
+          rotation: initialAngle,
+          x: 0,
+          y: 400,
+          scale: 0.5,
+          opacity: 0,
+        });
+
+        tl.to(card, {
+          rotation: fanAngle,
+          x: (i - 1) * 480,
+          y: i === 1 ? -30 : 0, // Middle card slightly higher
+          scale: i === 1 ? 1.05 : 1,
+          opacity: 1,
+          duration: 1.5,
+          ease: 'elastic.out(1, 0.5)',
+        }, 0.5 + i * 0.15);
+
+        // Hover effect simulation
+        if (i === 1) { // Pro card
+          tl.to(card, {
+            y: '-=15',
+            duration: 0.6,
+            repeat: -1,
+            yoyo: true,
+            ease: 'sine.inOut',
+          }, 2);
+        }
+      }
+    });
+
   }, []);
 
   const plans = [
     {
       name: 'Basic',
       price: 0,
-      Icon: RocketIcon,
-      features: ['Stock analysis', 'Budget dashboard', 'News terminal'],
+      features: ['Portfolio tracking', 'Monte Carlo', 'Basic analytics'],
       gradient: 'linear-gradient(135deg, #6b7280 0%, #9ca3af 100%)',
+      icon: 'M12 2L2 7v6c0 5.5 4.5 10.5 10 12 5.5-1.5 10-6.5 10-12V7l-10-5z',
     },
     {
       name: 'Pro',
       price: 10,
-      Icon: StarIcon,
-      features: ['Advanced analytics', 'M&A predictor', 'Insider tracking'],
+      features: ['All Basic features', 'AI predictions', 'Real-time data'],
       gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      featured: true,
+      popular: true,
+      icon: 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z',
     },
     {
       name: 'Platinum',
       price: 20,
-      Icon: CrownIcon,
-      features: ['AI Chatbot', 'ML predictions', 'Priority support'],
+      features: ['All Pro features', 'Full AI chatbot', 'Priority support'],
       gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+      icon: 'M12 2l2 6h6l-5 4 2 6-5-4-5 4 2-6-5-4h6l2-6z',
     },
   ];
 
   return (
-    <AbsoluteFill style={{ opacity }}>
+    <AbsoluteFill style={{ opacity, perspective: 2000 }}>
       <div ref={containerRef} style={styles.container}>
-        <h2 className="pricing-title" style={styles.title}>
+        <h2 className="pricing-title-reveal" style={styles.title}>
           Simple, Transparent Pricing
         </h2>
 
-        <p className="pricing-subtitle" style={styles.subtitle}>
-          100x more affordable than Bloomberg Terminal
-        </p>
-
-        <div style={styles.pricingGrid}>
+        <div style={styles.cardsWrapper}>
           {plans.map((plan, index) => {
-            const cardDelay = 40 + index * 20;
-            
-            const cardScale = plan.featured
-              ? 1 + Math.sin((frame - cardDelay) / 20) * 0.05
-              : 1;
+            const priceValue = interpolate(
+              frame,
+              [60 + index * 20, 100 + index * 20],
+              [0, plan.price],
+              { extrapolateRight: 'clamp' }
+            );
 
             return (
               <div
                 key={index}
-                className="pricing-card"
+                ref={el => cardsRef.current[index] = el}
                 style={{
-                  ...styles.pricingCard,
-                  ...(plan.featured ? styles.featuredCard : {}),
-                  transform: `scale(${cardScale})`,
-                  zIndex: plan.featured ? 2 : 1,
+                  ...styles.card,
+                  ...(plan.popular ? styles.popularCard : {}),
                 }}
               >
-                {plan.featured && (
-                  <div style={styles.featuredBadge}>Most Popular</div>
+                {plan.popular && (
+                  <div style={styles.popularBadge}>Most Popular</div>
                 )}
 
                 <div style={{
@@ -104,10 +126,10 @@ export const Scene5_Pricing = ({ duration }) => {
                   top: 0,
                   left: 0,
                   right: 0,
-                  height: 180,
+                  height: 160,
                   background: plan.gradient,
                   borderRadius: '28px 28px 0 0',
-                  opacity: 0.8,
+                  opacity: 0.85,
                 }} />
 
                 <div style={styles.cardContent}>
@@ -115,26 +137,26 @@ export const Scene5_Pricing = ({ duration }) => {
                     ...styles.planIcon,
                     background: plan.gradient,
                   }}>
-                    <plan.Icon size={60} />
+                    <svg width="50" height="50" viewBox="0 0 24 24" fill="none">
+                      <path d={plan.icon} fill="white" opacity="0.9"/>
+                    </svg>
                   </div>
+
                   <h3 style={styles.planName}>{plan.name}</h3>
+                  
                   <div style={styles.priceContainer}>
                     <span style={styles.currency}>$</span>
-                    <span style={styles.price}>
-                      {interpolate(
-                        frame,
-                        [cardDelay + 15, cardDelay + 40],
-                        [0, plan.price],
-                        { extrapolateRight: 'clamp' }
-                      ).toFixed(0)}
-                    </span>
+                    <span style={styles.price}>{Math.floor(priceValue)}</span>
                     <span style={styles.period}>/mo</span>
                   </div>
                   
                   <div style={styles.features}>
                     {plan.features.map((feature, i) => (
                       <div key={i} style={styles.feature}>
-                        <span style={styles.checkIcon}>✓</span>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style={{ marginRight: 12, flexShrink: 0 }}>
+                          <circle cx="12" cy="12" r="10" fill="#43e97b" opacity="0.2"/>
+                          <path d="M7 12l3 3 7-7" stroke="#43e97b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
                         {feature}
                       </div>
                     ))}
@@ -159,7 +181,7 @@ const styles = {
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: '0 80px',
+    transformStyle: 'preserve-3d',
   },
   title: {
     fontSize: 72,
@@ -170,53 +192,51 @@ const styles = {
     WebkitTextFillColor: 'transparent',
     textAlign: 'center',
     margin: 0,
-    marginBottom: 20,
+    marginBottom: 100,
   },
-  subtitle: {
-    fontSize: 32,
-    color: 'rgba(255, 255, 255, 0.8)',
-    textAlign: 'center',
-    margin: 0,
-    marginBottom: 80,
-  },
-  pricingGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(3, 1fr)',
-    gap: 40,
-    maxWidth: 1600,
-  },
-  pricingCard: {
+  cardsWrapper: {
     position: 'relative',
+    width: 1600,
+    height: 600,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  card: {
+    position: 'absolute',
+    width: 380,
     background: 'rgba(255, 255, 255, 0.03)',
     backdropFilter: 'blur(40px) saturate(180%)',
     borderRadius: 28,
     overflow: 'hidden',
-    boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+    transformStyle: 'preserve-3d',
+    boxShadow: '0 25px 70px rgba(0, 0, 0, 0.3)',
   },
-  featuredCard: {
-    boxShadow: '0 30px 80px rgba(102, 126, 234, 0.5)',
+  popularCard: {
+    boxShadow: '0 35px 90px rgba(102, 126, 234, 0.5)',
+    zIndex: 10,
   },
-  featuredBadge: {
+  popularBadge: {
     position: 'absolute',
     top: 20,
     right: 20,
     background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
     color: 'white',
-    padding: '8px 20px',
-    borderRadius: 20,
+    padding: '10px 24px',
+    borderRadius: 24,
     fontSize: 16,
     fontWeight: 800,
     zIndex: 3,
-    boxShadow: '0 4px 12px rgba(67, 233, 123, 0.5)',
+    boxShadow: '0 6px 16px rgba(67, 233, 123, 0.5)',
   },
   cardContent: {
     position: 'relative',
     zIndex: 1,
-    padding: '200px 40px 40px',
+    padding: '190px 40px 40px',
   },
   planIcon: {
     position: 'absolute',
-    top: -100,
+    top: -95,
     left: '50%',
     transform: 'translateX(-50%)',
     width: 100,
@@ -225,7 +245,7 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    boxShadow: '0 12px 40px rgba(0, 0, 0, 0.4)',
+    boxShadow: '0 15px 45px rgba(0, 0, 0, 0.4)',
   },
   planName: {
     fontSize: 36,
@@ -257,20 +277,14 @@ const styles = {
   features: {
     display: 'flex',
     flexDirection: 'column',
-    gap: 12,
+    gap: 14,
   },
   feature: {
-    fontSize: 18,
+    fontSize: 17,
     color: 'rgba(255, 255, 255, 0.9)',
     fontWeight: 500,
     display: 'flex',
     alignItems: 'center',
-    gap: 12,
-  },
-  checkIcon: {
-    color: '#43e97b',
-    fontSize: 20,
-    fontWeight: 900,
   },
   cardBorder: {
     position: 'absolute',

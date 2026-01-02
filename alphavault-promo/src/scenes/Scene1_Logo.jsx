@@ -1,14 +1,18 @@
 import { AbsoluteFill, useCurrentFrame, interpolate } from 'remotion';
 import { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
+import { drawSVGPath, animateTextSplit } from '../utils/gsapHelpers';
 
-export const Scene1_Logo = ({ duration }) => {
+export const Scene1_Hero = ({ duration }) => {
   const frame = useCurrentFrame();
   const containerRef = useRef(null);
+  const logoPathsRef = useRef([]);
+  const titleRef = useRef(null);
+  const subtitleRef = useRef(null);
 
   const opacity = interpolate(
     frame,
-    [0, 20, duration - 20, duration],
+    [0, 15, duration - 15, duration],
     [0, 1, 1, 0],
     { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
   );
@@ -17,58 +21,109 @@ export const Scene1_Logo = ({ duration }) => {
     if (!containerRef.current) return;
 
     const tl = gsap.timeline();
-    
-    tl.from('.logo-svg-path', {
-      strokeDashoffset: 500,
+
+    // 1. Draw SVG paths (logo)
+    logoPathsRef.current.forEach((path, i) => {
+      if (path) {
+        const length = path.getTotalLength?.() || 500;
+        gsap.set(path, {
+          strokeDasharray: length,
+          strokeDashoffset: length,
+        });
+        
+        tl.to(path, {
+          strokeDashoffset: 0,
+          duration: 1.2,
+          ease: 'power2.out',
+        }, i * 0.15);
+      }
+    });
+
+    // 2. Logo glow reveal
+    tl.from('.logo-glow-hero', {
+      scale: 0,
+      opacity: 0,
       duration: 1.5,
-      ease: 'power2.out',
-    })
-    .from('.logo-circle', {
+      ease: 'elastic.out(1, 0.3)',
+    }, '-=1');
+
+    // 3. Circles pop in
+    tl.from('.logo-circle-hero', {
       scale: 0,
       opacity: 0,
       duration: 0.8,
+      stagger: 0.1,
+      ease: 'back.out(3)',
+    }, '-=0.8');
+
+    // 4. Title - split text animation
+    if (titleRef.current) {
+      const text = titleRef.current.textContent;
+      const lines = text.split('\n').filter(l => l.trim());
+      
+      titleRef.current.innerHTML = lines
+        .map(line => {
+          const chars = line.split('');
+          return `<div style="overflow:hidden;margin-bottom:10px;">${chars
+            .map((char, i) => `<span style="display:inline-block;transform:translateY(150%) rotateX(-90deg);opacity:0;">${char === ' ' ? '&nbsp;' : char}</span>`)
+            .join('')}</div>`;
+        })
+        .join('');
+
+      const allChars = titleRef.current.querySelectorAll('span');
+      
+      tl.to(allChars, {
+        y: 0,
+        rotationX: 0,
+        opacity: 1,
+        duration: 1,
+        stagger: 0.02,
+        ease: 'power4.out',
+      }, '-=0.5');
+    }
+
+    // 5. Subtitle reveal
+    tl.from('.hero-subtitle-line', {
+      y: 60,
+      opacity: 0,
+      duration: 0.8,
       stagger: 0.15,
-      ease: 'back.out(2)',
-    }, '-=1')
-    .from('.main-title', {
-      y: 80,
+      ease: 'power3.out',
+    }, '-=0.6');
+
+    // 6. Social proof cards
+    tl.from('.proof-card-hero', {
+      scale: 0,
+      rotationY: 90,
       opacity: 0,
       duration: 1,
-      ease: 'power4.out',
-    }, '-=0.6')
-    .from('.subtitle', {
-      y: 40,
-      opacity: 0,
-      duration: 0.8,
-      ease: 'power3.out',
-    }, '-=0.5')
-    .from('.tagline', {
-      scale: 0.9,
-      opacity: 0,
-      duration: 0.8,
+      stagger: 0.12,
       ease: 'elastic.out(1, 0.5)',
     }, '-=0.4');
+
   }, []);
 
+  const logoRotation = Math.sin(frame / 60) * 5;
+
   return (
-    <AbsoluteFill style={{ opacity }}>
+    <AbsoluteFill style={{ opacity, perspective: 2000 }}>
       <div ref={containerRef} style={styles.container}>
-        {/* Logo SVG */}
-        <div style={styles.logoContainer}>
-          <div style={{
-            ...styles.logoGlow,
-            opacity: 0.6 + Math.sin(frame / 20) * 0.3,
-          }} />
+        {/* Logo SVG avec DrawSVG */}
+        <div style={{
+          ...styles.logoWrapper,
+          transform: `rotateY(${logoRotation}deg)`,
+        }}>
+          <div className="logo-glow-hero" style={styles.logoGlow} />
           
-          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style={{ width: 400, height: 400 }}>
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style={{ width: 350, height: 350 }}>
             <defs>
-              <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <linearGradient id="heroGrad" x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" style={{ stopColor: '#60a5fa' }} />
                 <stop offset="50%" style={{ stopColor: '#818cf8' }} />
                 <stop offset="100%" style={{ stopColor: '#a78bfa' }} />
               </linearGradient>
-              <filter id="glow">
-                <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
+              <filter id="heroGlow">
+                <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
                 <feMerge>
                   <feMergeNode in="coloredBlur"/>
                   <feMergeNode in="SourceGraphic"/>
@@ -76,51 +131,66 @@ export const Scene1_Logo = ({ duration }) => {
               </filter>
             </defs>
             
+            {/* Main path (animated) */}
             <path 
-              className="logo-svg-path"
+              ref={el => logoPathsRef.current[0] = el}
               d="M 20 80 L 30 70 L 40 75 L 50 60 L 60 65 L 70 45 L 80 50 L 90 30" 
-              stroke="url(#logoGrad)" 
-              strokeWidth="5" 
+              stroke="url(#heroGrad)" 
+              strokeWidth="6" 
               fill="none" 
               strokeLinecap="round" 
               strokeLinejoin="round"
-              filter="url(#glow)"
-              style={{
-                strokeDasharray: 500,
-                strokeDashoffset: 0,
-              }}
+              filter="url(#heroGlow)"
             />
             
-            <circle className="logo-circle" cx="30" cy="70" r="5" fill="url(#logoGrad)" filter="url(#glow)" />
-            <circle className="logo-circle" cx="50" cy="60" r="5" fill="url(#logoGrad)" filter="url(#glow)" />
-            <circle className="logo-circle" cx="70" cy="45" r="5" fill="url(#logoGrad)" filter="url(#glow)" />
-            <circle className="logo-circle" cx="90" cy="30" r="6" fill="url(#logoGrad)" filter="url(#glow)" />
+            {/* Circles (pop in) */}
+            <circle className="logo-circle-hero" cx="30" cy="70" r="6" fill="url(#heroGrad)" filter="url(#heroGlow)" />
+            <circle className="logo-circle-hero" cx="50" cy="60" r="6" fill="url(#heroGrad)" filter="url(#heroGlow)" />
+            <circle className="logo-circle-hero" cx="70" cy="45" r="6" fill="url(#heroGrad)" filter="url(#heroGlow)" />
+            <circle className="logo-circle-hero" cx="90" cy="30" r="7" fill="url(#heroGrad)" filter="url(#heroGlow)" />
             
+            {/* Arrow (animated) */}
             <path 
-              className="logo-circle"
+              ref={el => logoPathsRef.current[1] = el}
+              className="logo-circle-hero"
               d="M 85 35 L 90 30 L 85 25" 
-              stroke="url(#logoGrad)" 
-              strokeWidth="4" 
+              stroke="url(#heroGrad)" 
+              strokeWidth="5" 
               fill="none" 
               strokeLinecap="round"
-              filter="url(#glow)"
+              filter="url(#heroGlow)"
             />
           </svg>
         </div>
 
-        {/* Titre */}
-        <h1 className="main-title" style={styles.mainTitle}>
-          AlphaVault AI
+        {/* Titre avec SplitText effect */}
+        <h1 ref={titleRef} style={styles.mainTitle}>
+          Financial Intelligence
+          Powered by AI
         </h1>
 
         {/* Sous-titre */}
-        <p className="subtitle" style={styles.subtitle}>
-          AI-Powered Financial Intelligence Platform
-        </p>
+        <div style={styles.subtitle}>
+          <p className="hero-subtitle-line" style={styles.subtitleLine}>
+            Transform your investment decisions with AlphaVault AI
+          </p>
+          <p className="hero-subtitle-line" style={styles.subtitleLine}>
+            IPO analysis • M&A screening • Portfolio optimization
+          </p>
+        </div>
 
-        {/* Tagline glassmorphism */}
-        <div className="tagline" style={styles.tagline}>
-          Empowering Individual Investors with Institutional-Grade Analytics
+        {/* Social Proof */}
+        <div style={styles.socialProof}>
+          {[
+            { number: '1000+', label: 'Investors' },
+            { number: '100K+', label: 'Analyses' },
+            { number: 'All US', label: 'Companies' },
+          ].map((item, i) => (
+            <div key={i} className="proof-card-hero" style={styles.proofCard}>
+              <div style={styles.proofNumber}>{item.number}</div>
+              <div style={styles.proofLabel}>{item.label}</div>
+            </div>
+          ))}
         </div>
       </div>
     </AbsoluteFill>
@@ -135,56 +205,70 @@ const styles = {
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    position: 'relative',
+    transformStyle: 'preserve-3d',
   },
-  logoContainer: {
+  logoWrapper: {
     position: 'relative',
-    marginBottom: 40,
+    marginBottom: 50,
+    transformStyle: 'preserve-3d',
   },
   logoGlow: {
     position: 'absolute',
     top: '50%',
     left: '50%',
     transform: 'translate(-50%, -50%)',
-    width: 500,
-    height: 500,
+    width: 450,
+    height: 450,
     background: 'radial-gradient(circle, rgba(96, 165, 250, 0.6) 0%, transparent 70%)',
     filter: 'blur(100px)',
     pointerEvents: 'none',
   },
   mainTitle: {
-    fontSize: 140,
+    fontSize: 110,
     fontWeight: 900,
-    background: 'linear-gradient(135deg, #60a5fa 0%, #818cf8 25%, #a78bfa 50%, #c084fc 75%, #e879f9 100%)',
-    backgroundSize: '200% auto',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
+    color: 'white',
     textAlign: 'center',
     margin: 0,
-    marginBottom: 24,
+    marginBottom: 30,
+    lineHeight: 1.3,
     letterSpacing: '-2px',
-    textShadow: '0 0 60px rgba(168, 85, 247, 0.5)',
+    textShadow: '0 4px 30px rgba(0, 0, 0, 0.5)',
   },
   subtitle: {
-    fontSize: 42,
-    color: 'rgba(255, 255, 255, 0.95)',
-    fontWeight: 600,
-    textAlign: 'center',
-    margin: 0,
-    marginBottom: 40,
-    textShadow: '0 2px 20px rgba(0, 0, 0, 0.5)',
+    marginBottom: 50,
   },
-  tagline: {
-    background: 'rgba(255, 255, 255, 0.08)',
-    backdropFilter: 'blur(20px) saturate(180%)',
-    border: '1px solid rgba(255, 255, 255, 0.15)',
-    borderRadius: 24,
-    padding: '24px 48px',
-    fontSize: 32,
+  subtitleLine: {
+    fontSize: 34,
     color: 'rgba(255, 255, 255, 0.9)',
-    fontWeight: 600,
     textAlign: 'center',
-    boxShadow: '0 8px 32px rgba(59, 130, 246, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
-    maxWidth: 1400,
+    margin: '0 0 8px 0',
+    fontWeight: 500,
+    textShadow: '0 2px 20px rgba(0, 0, 0, 0.3)',
+  },
+  socialProof: {
+    display: 'flex',
+    gap: 70,
+  },
+  proofCard: {
+    textAlign: 'center',
+    padding: '20px 30px',
+    background: 'rgba(255, 255, 255, 0.05)',
+    backdropFilter: 'blur(20px)',
+    border: '1px solid rgba(255, 255, 255, 0.1)',
+    borderRadius: 20,
+    transformStyle: 'preserve-3d',
+  },
+  proofNumber: {
+    fontSize: 46,
+    fontWeight: 900,
+    background: 'linear-gradient(135deg, #60a5fa, #a78bfa)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    marginBottom: 8,
+  },
+  proofLabel: {
+    fontSize: 19,
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontWeight: 600,
   },
 };
