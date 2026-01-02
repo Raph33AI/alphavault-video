@@ -2,20 +2,20 @@ import { AbsoluteFill, useCurrentFrame, interpolate, spring, useVideoConfig } fr
 import { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 
-export const Scene1_Logo = ({ startFrame, endFrame }) => {
-  const frame = useCurrentFrame();
+export const Scene1_Logo = ({ duration }) => {
+  const frame = useCurrentFrame(); // Frame LOCAL (commence à 0 pour cette scène)
   const { fps } = useVideoConfig();
   const containerRef = useRef(null);
 
-  // Calculer l'opacité de la scène
+  // Fade in/out
   const opacity = interpolate(
     frame,
-    [startFrame, startFrame + 30, endFrame - 30, endFrame],
+    [0, 30, duration - 30, duration],
     [0, 1, 1, 0],
     { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
   );
 
-  // Animation GSAP du logo
+  // Animation GSAP
   useEffect(() => {
     if (!containerRef.current) return;
 
@@ -43,19 +43,16 @@ export const Scene1_Logo = ({ startFrame, endFrame }) => {
 
   }, []);
 
-  // Rotation du logo avec spring
+  // Rotation du logo
   const rotation = spring({
-    frame: frame - startFrame,
+    frame,
     fps,
-    config: {
-      damping: 100,
-    },
+    config: { damping: 100 },
   }) * 360;
 
   return (
     <AbsoluteFill style={{ opacity }}>
       <div ref={containerRef} style={styles.container}>
-        {/* Logo avec effet glow */}
         <div style={styles.logoContainer}>
           <div className="logo-glow" style={{
             ...styles.logoGlow,
@@ -64,12 +61,10 @@ export const Scene1_Logo = ({ startFrame, endFrame }) => {
           <div style={styles.logoText}>AV</div>
         </div>
 
-        {/* Titre principal */}
         <h1 className="main-title" style={styles.mainTitle}>
           AlphaVault AI
         </h1>
 
-        {/* Sous-titre */}
         <p className="subtitle" style={styles.subtitle}>
           Premium Financial Intelligence Platform
         </p>
@@ -120,8 +115,8 @@ const styles = {
     WebkitBackgroundClip: 'text',
     WebkitTextFillColor: 'transparent',
     textAlign: 'center',
-    marginBottom: 40,
     margin: 0,
+    marginBottom: 40,
   },
   subtitle: {
     fontSize: 48,

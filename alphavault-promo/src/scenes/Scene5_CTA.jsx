@@ -1,23 +1,23 @@
 import { AbsoluteFill, useCurrentFrame, interpolate, spring, useVideoConfig } from 'remotion';
 
-export const Scene5_CTA = ({ startFrame, endFrame }) => {
+export const Scene5_CTA = ({ duration }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
   const opacity = interpolate(
     frame,
-    [startFrame, startFrame + 30, endFrame - 30, endFrame],
+    [0, 30, duration - 30, duration],
     [0, 1, 1, 0],
     { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
   );
 
   const buttonScale = spring({
-    frame: frame - (startFrame + 30),
+    frame: frame - 30,
     fps,
     config: { damping: 100 },
   });
 
-  const pulse = Math.sin((frame - startFrame) / 10) * 0.05 + 1;
+  const pulse = Math.sin(frame / 10) * 0.05 + 1;
 
   return (
     <AbsoluteFill style={{ opacity }}>
@@ -28,7 +28,7 @@ export const Scene5_CTA = ({ startFrame, endFrame }) => {
         
         <button style={{
           ...styles.ctaButton,
-          transform: `scale(${buttonScale * pulse})`,
+          transform: `scale(${Math.max(buttonScale, 0) * pulse})`,
         }}>
           Start Free Trial →
         </button>
@@ -56,7 +56,6 @@ const styles = {
     WebkitBackgroundClip: 'text',
     WebkitTextFillColor: 'transparent',
     textAlign: 'center',
-    marginBottom: 60,
     margin: '0 0 60px 0',
   },
   ctaButton: {

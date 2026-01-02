@@ -7,48 +7,37 @@ import { Scene5_CTA } from './scenes/Scene5_CTA';
 
 export const Video = () => {
   // Durées en frames (60 FPS)
-  const scene1 = { start: 0, duration: 300 }; // 5s
-  const scene2 = { start: 300, duration: 300 }; // 5s
-  const scene3 = { start: 600, duration: 600 }; // 10s
-  const scene4 = { start: 1200, duration: 480 }; // 8s
-  const scene5 = { start: 1680, duration: 420 }; // 7s
-  // Total: 35s
+  const scene1Duration = 300; // 5s
+  const scene2Duration = 300; // 5s
+  const scene3Duration = 600; // 10s
+  const scene4Duration = 480; // 8s
+  const scene5Duration = 420; // 7s
 
   return (
     <AbsoluteFill style={{ backgroundColor: '#0f172a' }}>
-      <Sequence from={scene1.start} durationInFrames={scene1.duration}>
-        <Scene1_Logo 
-          startFrame={scene1.start} 
-          endFrame={scene1.start + scene1.duration} 
-        />
+      {/* Scène 1 : Logo (0-5s) */}
+      <Sequence from={0} durationInFrames={scene1Duration}>
+        <Scene1_Logo duration={scene1Duration} />
       </Sequence>
 
-      <Sequence from={scene2.start} durationInFrames={scene2.duration}>
-        <Scene2_Problem 
-          startFrame={scene2.start} 
-          endFrame={scene2.start + scene2.duration} 
-        />
+      {/* Scène 2 : Problème (5-10s) */}
+      <Sequence from={scene1Duration} durationInFrames={scene2Duration}>
+        <Scene2_Problem duration={scene2Duration} />
       </Sequence>
 
-      <Sequence from={scene3.start} durationInFrames={scene3.duration}>
-        <Scene3_Features 
-          startFrame={scene3.start} 
-          endFrame={scene3.start + scene3.duration} 
-        />
+      {/* Scène 3 : Features (10-20s) */}
+      <Sequence from={scene1Duration + scene2Duration} durationInFrames={scene3Duration}>
+        <Scene3_Features duration={scene3Duration} />
       </Sequence>
 
-      <Sequence from={scene4.start} durationInFrames={scene4.duration}>
-        <Scene4_Stats 
-          startFrame={scene4.start} 
-          endFrame={scene4.start + scene4.duration} 
-        />
+      {/* Scène 4 : Stats (20-28s) */}
+      <Sequence from={scene1Duration + scene2Duration + scene3Duration} durationInFrames={scene4Duration}>
+        <Scene4_Stats duration={scene4Duration} />
       </Sequence>
 
-      <Sequence from={scene5.start} durationInFrames={scene5.duration}>
-        <Scene5_CTA 
-          startFrame={scene5.start} 
-          endFrame={scene5.start + scene5.duration} 
-        />
+      {/* Scène 5 : CTA (28-35s) */}
+      <Sequence from={scene1Duration + scene2Duration + scene3Duration + scene4Duration} durationInFrames={scene5Duration}>
+        <Scene5_CTA duration={scene5Duration} />
       </Sequence>
     </AbsoluteFill>
   );

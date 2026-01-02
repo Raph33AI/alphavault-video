@@ -1,11 +1,11 @@
 import { AbsoluteFill, useCurrentFrame, interpolate } from 'remotion';
 
-export const Scene4_Stats = ({ startFrame, endFrame }) => {
+export const Scene4_Stats = ({ duration }) => {
   const frame = useCurrentFrame();
 
   const opacity = interpolate(
     frame,
-    [startFrame, startFrame + 30, endFrame - 30, endFrame],
+    [0, 30, duration - 30, duration],
     [0, 1, 1, 0],
     { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
   );
@@ -26,7 +26,7 @@ export const Scene4_Stats = ({ startFrame, endFrame }) => {
             const animatedValue = Math.floor(
               interpolate(
                 frame,
-                [startFrame + 30 + index * 10, startFrame + 90 + index * 10],
+                [30 + index * 10, 90 + index * 10],
                 [0, stat.value],
                 { extrapolateRight: 'clamp' }
               )
@@ -60,7 +60,6 @@ const styles = {
     color: 'rgba(255, 255, 255, 0.95)',
     fontWeight: 800,
     textAlign: 'center',
-    marginBottom: 60,
     margin: '0 0 60px 0',
   },
   statsContainer: {

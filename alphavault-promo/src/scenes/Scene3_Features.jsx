@@ -1,12 +1,12 @@
 import { AbsoluteFill, useCurrentFrame, interpolate, spring, useVideoConfig } from 'remotion';
 
-export const Scene3_Features = ({ startFrame, endFrame }) => {
+export const Scene3_Features = ({ duration }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
   const opacity = interpolate(
     frame,
-    [startFrame, startFrame + 30, endFrame - 30, endFrame],
+    [0, 30, duration - 30, duration],
     [0, 1, 1, 0],
     { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
   );
@@ -25,7 +25,7 @@ export const Scene3_Features = ({ startFrame, endFrame }) => {
         <div style={styles.featuresGrid}>
           {features.map((feature, index) => {
             const cardY = spring({
-              frame: frame - (startFrame + 30 + index * 10),
+              frame: frame - (30 + index * 10),
               fps,
               config: { damping: 100, stiffness: 200 },
             }) * 100 - 100;
@@ -35,7 +35,7 @@ export const Scene3_Features = ({ startFrame, endFrame }) => {
                 key={index}
                 style={{
                   ...styles.featureCard,
-                  transform: `translateY(${cardY}px)`,
+                  transform: `translateY(${Math.max(cardY, 0)}px)`,
                 }}
               >
                 <div style={styles.featureIcon}>{feature.icon}</div>
@@ -66,7 +66,6 @@ const styles = {
     color: 'rgba(255, 255, 255, 0.95)',
     fontWeight: 800,
     textAlign: 'center',
-    marginBottom: 80,
     margin: '0 0 80px 0',
   },
   featuresGrid: {
@@ -92,7 +91,6 @@ const styles = {
     fontSize: 36,
     fontWeight: 800,
     color: 'white',
-    marginBottom: 16,
     margin: '0 0 16px 0',
   },
   featureDesc: {

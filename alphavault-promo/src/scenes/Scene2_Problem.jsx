@@ -1,25 +1,25 @@
 import { AbsoluteFill, useCurrentFrame, interpolate } from 'remotion';
 
-export const Scene2_Problem = ({ startFrame, endFrame }) => {
+export const Scene2_Problem = ({ duration }) => {
   const frame = useCurrentFrame();
 
   const opacity = interpolate(
     frame,
-    [startFrame, startFrame + 30, endFrame - 30, endFrame],
+    [0, 30, duration - 30, duration],
     [0, 1, 1, 0],
     { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
   );
 
   const titleY = interpolate(
     frame,
-    [startFrame, startFrame + 30],
+    [0, 30],
     [100, 0],
     { extrapolateRight: 'clamp' }
   );
 
   const subtitleY = interpolate(
     frame,
-    [startFrame + 15, startFrame + 45],
+    [15, 45],
     [50, 0],
     { extrapolateRight: 'clamp' }
   );
@@ -63,8 +63,8 @@ const styles = {
     WebkitBackgroundClip: 'text',
     WebkitTextFillColor: 'transparent',
     textAlign: 'center',
-    marginBottom: 40,
     margin: 0,
+    marginBottom: 40,
   },
   subtitle: {
     fontSize: 40,
